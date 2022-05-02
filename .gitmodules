@@ -1,0 +1,6 @@
+[submodule "ske48schedule"]
+	path = ske48schedule
+	url = git@github.com:mooony123/ske48schedule.git
+[submodule "ske48blog"]
+	path = ske48blog
+	url = git@github.com:mooony123/ske48blog.git
