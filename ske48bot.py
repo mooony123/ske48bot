@@ -290,7 +290,7 @@ async def on_ready():
     blog_info.update(load_info('blog_info'))
     convert_keys_to_int(blog_info)
 
-    await ske48blog.init()
+    await ske48news.init()
     news_info.update(load_info('news_info'))
     convert_keys_to_int(news_info)
 
