@@ -4,3 +4,6 @@
 [submodule "ske48blog"]
 	path = ske48blog
 	url = git@github.com:mooony123/ske48blog.git
+[submodule "ske48news"]
+	path = ske48news
+	url = git@github.com:mooony123/ske48news.git

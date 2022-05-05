@@ -16,6 +16,7 @@ import requests
 
 from ske48schedule.ske48schedule import todays_schedule_str
 from ske48blog import ske48blog
+from ske48news import ske48news
 
 import pprint
 
@@ -37,6 +38,9 @@ schedule_jobs = {}
 
 blog_info = {}
 blog_job = None
+
+news_info = {}
+news_job = None
 
 def dump_info(data: dict, name: str):
     with open(f'{name}.json', 'w') as f:
@@ -153,6 +157,11 @@ def init_jobs():
                                    ske48blog_task):
         raise RuntimeError('init_jobs blog')
 
+    if not broadcast_job_from_info(news_info,
+                                   news_job,
+                                   ske48news_task):
+        raise RuntimeError('init_jobs news')
+
 async def ske48schedule_task(channel):
     await channel.send(todays_schedule_str())
 
@@ -186,7 +195,7 @@ async def schedule_command(ctx, *args):
         else:
             schedule_info[ctx.guild.id] = info_entry
         dump_info(schedule_info, 'schedule_info')
-    await ctx.send(response)
+    await ctx.send(f'schedule {response}')
 
 async def ske48blog_task(channels: list):
     new_blogs = await asyncio.create_task(ske48blog.get_new_blogs())
@@ -234,6 +243,43 @@ async def blog_command(ctx, *args):
         dump_info(blog_info, 'blog_info')
     await ctx.send(f'blog {response}')
 
+async def ske48news_task(channels: list):
+    new_news = await asyncio.create_task(ske48news.get_new_news_items_str())
+    for news in new_news:
+        for channel in channels:
+            await channel.send(news)
+
+@client.command('news')
+async def news_command(ctx, *args):
+
+    if ctx.guild == None: return
+    if not ctx.message.author.guild_permissions.manage_guild: return
+    if args[0] == 'cron' and ctx.author.id != 234525271531716609: return
+
+    info_entry = {'channel' : ctx.channel.id,
+                  'cron' : default_schedule_cron
+                 }
+    info_entry = news_info.get(ctx.guild.id, info_entry)
+
+    update, response = parse_op(ctx, info_entry, args,
+                                ['cron', 'channel', 'enable', 'disable'])
+    if update == True:
+        if len(info_entry) == 0:
+            news_info.pop(ctx.guild.id, None)
+        else:
+            news_info.update({ctx.guild.id: info_entry})
+        for v in news_info.values():
+            v.update(cron=info_entry['cron'])
+
+        res = broadcast_job_from_info(news_info,
+                                      news_job,
+                                      ske48news_task)
+        if res is False:
+            raise RuntimeError('news command job')
+
+        dump_info(news_info, 'news_info')
+    await ctx.send(f'news {response}')
+
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to discord!')
@@ -243,6 +289,10 @@ async def on_ready():
     await ske48blog.init()
     blog_info.update(load_info('blog_info'))
     convert_keys_to_int(blog_info)
+
+    await ske48blog.init()
+    news_info.update(load_info('news_info'))
+    convert_keys_to_int(news_info)
 
     init_jobs()
     scheduler.start()
