@@ -252,8 +252,9 @@ async def on_error(event, *args, **kwargs):
     print(f'{event}')
     exit()
 
-#TOKEN = os.getenv('DISCORD_TOKEN')
-with open('token', 'r') as f:
+IS_TEST = os.getenv('BOT_TEST')
+token_filename = 'token_test' if IS_TEST else 'token'
+with open(token_filename, 'r') as f:
     TOKEN = f.read()
 print(TOKEN)
 
