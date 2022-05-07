@@ -105,7 +105,7 @@ def job_from_info(guild_id: int, info: dict, jobs: dict, task: Callable) -> bool
 
     trigger = None
     if len(info['cron']) != 0:
-        trigger = CronTrigger.from_crontab(info['cron'])
+        trigger = CronTrigger.from_crontab(info['cron'], timezone=tz)
     if guild_id not in jobs:
         print("adding job")
         job = scheduler.add_job(task,
@@ -141,7 +141,7 @@ def broadcast_job_from_info(info: dict, job, task: Callable) -> bool:
             job = None
         return True
 
-    trigger = CronTrigger.from_crontab(cron)
+    trigger = CronTrigger.from_crontab(cron, timezone=tz)
     if job == None:
         job = scheduler.add_job(task, trigger=trigger, args=[channels])
     else:
