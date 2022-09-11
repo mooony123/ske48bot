@@ -13,6 +13,7 @@ from typing import Tuple
 from typing import Callable
 import tempfile
 import requests
+import re
 
 from ske48schedule.ske48schedule import todays_schedule_str
 from ske48blog import ske48blog
@@ -41,6 +42,22 @@ blog_job = None
 
 news_info = {}
 news_job = None
+
+def escape(string: str):
+    # \ -> \\
+    string = re.sub(r'\\', '\\\\', string)
+    # - -> \_
+    string = re.sub(r'_', '\\_', string)
+    # * -> \*
+    string = re.sub(r'\*', '\\*', string)
+    # ~ -> \~
+    string = re.sub(r'~', '\\~', string)
+    # ` -> \`
+    string = re.sub(r'`', '\\`', string)
+    # | -> \|
+    string = re.sub(r'\|', '\\|', string)
+
+    return string
 
 def dump_info(data: dict, name: str):
     with open(f'{name}.json', 'w') as f:
@@ -202,6 +219,7 @@ async def ske48blog_task(channels: list):
     for new_blog in new_blogs:
         blog_dict = ske48blog.parse_blog(new_blog)
         blog_str = ske48blog.blog_to_str(blog_dict)
+        blog_str = escape(blog_str)
 
         files = []
         for image_url in blog_dict.get(ske48blog.IMAGES):
